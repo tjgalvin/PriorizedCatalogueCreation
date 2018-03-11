@@ -35,8 +35,8 @@ $(REFS:.fits=_rms.fits): %_rms.fits : %.fits
 
 
 # Blind source finding on reference images
-$(REFS:.fits=_comp.fits): %_comp.fits : %.fits %_bkg.fits %_rms.fits %_psf.fits
-	echo aegean $< --background $*_bkg.fits --noise $*_rms.fits --psf $*_psf.fits --island --table $<,$*.reg
+$(REFS:.fits=_comp.fits): %_comp.fits : %.fits %_bkg.fits %_rms.fits %_psf.fits %.mim
+	echo aegean $< --background $*_bkg.fits --noise $*_rms.fits --psf $*_psf.fits --island --table $<,$*.reg --region $*.mim
 
 # Quality control on reference image catalogues
 $(REFS:.fits=_QC_comp.fits): $(REFS:.fits=_comp.fits)
@@ -48,5 +48,5 @@ $(MASTER): $(REFS:.fits=_QC_comp.fits)
 	echo "cat $^ -> $@"
 
 # priorized fitting on reference catalogues
-$(SUBS:.fits=_proirized_comp.fits): %_priorized_comp.fits : %.fits %_bkg.fits %_rms.fits %_psf.fits $(MASTER)
-	echo aegean $*.fits --background $*_bkg.fits --noise $*_rms.fits --psf $*_psf.fits --table $<,$*.reg --priorize 2 --input $(MASTER)
+$(SUBS:.fits=_proirized_comp.fits): %_priorized_comp.fits : %.fits %_bkg.fits %_rms.fits %_psf.fits %.mim $(MASTER)
+	echo aegean $*.fits --background $*_bkg.fits --noise $*_rms.fits --psf $*_psf.fits --table $<,$*.reg --priorize 2 --input $(MASTER) --region $*.mim
