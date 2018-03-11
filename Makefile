@@ -28,3 +28,7 @@ $(REFS:.fits=_bkg.fits) $(REFS:.fits=_rms.fits): $(REFS)
 # Blind source finding on reference images
 $(REFS:.fits=_comp.fits): $(REFS) $(REFS:.fits=_bkg.fits) $(REFS:.fits=_rms.fits) $(REFS:.fits=_psf.fits)
 	echo aegean $< --background $(word 2, $^) --noise $(word 3, $^) --psf $(word 4, $^) --island --table $<,$(subst .fits,.reg,$<)
+
+# Quality control on reference image catalogues
+$(REFS:.fits=_QC_comp.fits): $(REFS:.fits=_comp.fits)
+	echo python QC_filter --infile $< --outfile $@
