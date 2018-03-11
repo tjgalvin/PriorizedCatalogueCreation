@@ -11,8 +11,8 @@ all:
 	echo $(REFS) $(SUBS)
 
 # Fake rules to indicate that these files should be assumed to exist
-$(REFS) $(REFS:.fits=_psf.fits):
-$(SUBS) $(SUBS:.fits=_psf.fits):
+$(REFS) $(REFS:.fits=_psf.fits) $(REFS:.fits=.mim):
+$(SUBS) $(SUBS:.fits=_psf.fits) $(SUBS:.fits=.mim):
 
 # This rule expands to "ref1_comp.fits: ref1.fits ref1_bkg.fits", for each file in $(REFS)
 #$(REFS:.fits=_comp.fits): $(REFS) $(REFS:.fits=_bkg.fits)
@@ -32,7 +32,6 @@ $(REFS:.fits=_bkg.fits): %_bkg.fits : %.fits
 	echo BANE $<
 $(REFS:.fits=_rms.fits): %_rms.fits : %.fits
 	test -f $@ || echo BANE again $<
-
 
 
 # Blind source finding on reference images
