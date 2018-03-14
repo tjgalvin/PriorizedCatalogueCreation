@@ -48,8 +48,8 @@ $(REFS:.fits=_QC_comp.fits): $(REFS:.fits=_comp.fits)
 
 # Join all the reference catalogues together to make one master catalogue
 $(MASTER): $(REFS:.fits=_QC_comp.fits)
-	echo "cat $^ -> $@"
-	./join_catalogues.sh $@ $^ 
+	./cat_catalogues.sh master_joined.fits $^ 
+	echo "master_joined.fits -> $(MASTER)"
 
 # priorized fitting on reference catalogues
 $(SUBS:.fits=_priorized_comp.fits): %_priorized_comp.fits : %.fits %_bkg.fits %_rms.fits %_psf.fits %.mim $(MASTER)
@@ -58,6 +58,7 @@ $(SUBS:.fits=_priorized_comp.fits): %_priorized_comp.fits : %.fits %_bkg.fits %_
 # combine catalogues
 subs.fits : $(SUBS:.fits=_priorized_comp.fits)
 	echo "Stilts join"
+	./join_catalogues.sh subs_long.fits $^
 	echo "cut columns"
 	echo "rename columns"
 	echo "trim duplicate sources"
