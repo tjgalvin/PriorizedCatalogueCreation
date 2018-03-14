@@ -2,6 +2,8 @@
 REFIMG=reference_images.dat
 SUBIMG=subband_images.dat
 MASTER=master_catalogue.fits
+STILTS=stilts
+
 
 SUBS=$(shell cat $(SUBIMG))
 REFS=$(shell cat $(REFIMG))
@@ -26,7 +28,7 @@ $(SUBS:.fits=_bkg.fits): %_bkg.fits : %.fits
 # This duplication is required since I can't mash it into the above rule whislt also using target:pattern:prereq
 # However it causes BANE to run twice so we first check to see if the file is already built. arg!
 $(SUBS:.fits=_rms.fits): %_rms.fits : %.fits
-	test -f $@ || echo BANE $<
+	test -f $@ || echo BANE again $<
 
 # Background and noise maps for the reference images
 $(REFS:.fits=_bkg.fits): %_bkg.fits : %.fits
@@ -47,6 +49,7 @@ $(REFS:.fits=_QC_comp.fits): $(REFS:.fits=_comp.fits)
 # Join all the reference catalogues together to make one master catalogue
 $(MASTER): $(REFS:.fits=_QC_comp.fits)
 	echo "cat $^ -> $@"
+	./join_catalogues.sh $@ $^ 
 
 # priorized fitting on reference catalogues
 $(SUBS:.fits=_priorized_comp.fits): %_priorized_comp.fits : %.fits %_bkg.fits %_rms.fits %_psf.fits %.mim $(MASTER)
