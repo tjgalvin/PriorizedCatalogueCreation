@@ -13,6 +13,7 @@ all:
 # Fake rules to indicate that these files should be assumed to exist
 $(REFS) $(REFS:.fits=_psf.fits) $(REFS:.fits=.mim):
 $(SUBS) $(SUBS:.fits=_psf.fits) $(SUBS:.fits=.mim):
+bad_sources.dat bad_regions.mim:
 
 # This rule expands to "ref1_comp.fits: ref1.fits ref1_bkg.fits", for each file in $(REFS)
 #$(REFS:.fits=_comp.fits): $(REFS) $(REFS:.fits=_bkg.fits)
@@ -48,5 +49,18 @@ $(MASTER): $(REFS:.fits=_QC_comp.fits)
 	echo "cat $^ -> $@"
 
 # priorized fitting on reference catalogues
-$(SUBS:.fits=_proirized_comp.fits): %_priorized_comp.fits : %.fits %_bkg.fits %_rms.fits %_psf.fits %.mim $(MASTER)
+$(SUBS:.fits=_priorized_comp.fits): %_priorized_comp.fits : %.fits %_bkg.fits %_rms.fits %_psf.fits %.mim $(MASTER)
 	echo aegean $*.fits --background $*_bkg.fits --noise $*_rms.fits --psf $*_psf.fits --table $<,$*.reg --priorize 2 --input $(MASTER) --region $*.mim
+
+# combine catalogues
+subs.fits : $(SUBS:.fits=_priorized_comp.fits)
+	echo "Stilts join"
+	echo "cut columns"
+	echo "rename columns"
+	echo "trim duplicate sources"
+
+Final.fits : subs.fits $(MASTER) bad_sources.dat bad_regions.mim
+	echo "join"
+	echo "metadata"
+	echo "zap"
+
