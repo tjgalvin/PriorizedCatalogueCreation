@@ -60,6 +60,7 @@ subs.fits : $(SUBS:.fits=_priorized_comp.fits)
 	echo "Stilts join"
 	./join_catalogues.sh subs_long.fits $^
 	echo "cut columns"
+	python trim_subs.py subs_long.fits subs_short.fits
 	echo "rename columns"
 	echo "trim duplicate sources"
 
