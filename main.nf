@@ -32,7 +32,6 @@ image_ch = Channel
                     file("${params.image_dir}/${row.rms}"), 
                     file("${params.image_dir}/${row.psf}"), 
                     "${row.name}") }
-  .first()
 
 process source_find {
   label 'aegean'
