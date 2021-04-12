@@ -48,6 +48,6 @@ process source_find {
   echo ${task.process} on \${HOSTNAME}
   aegean --cores ${task.cpus} --background bkg.fits --noise rms.fits --noregroup\
          --table image.fits --priorized 1 --input reference.fits image.fits
-  mv image.fits ${name}_comp.fits
+  mv image_comp.fits ${name}_comp.fits
   """
 }
