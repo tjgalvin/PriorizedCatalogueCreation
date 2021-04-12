@@ -15,6 +15,7 @@ log.info """\
          version      : ${version} - ${date}
          images from  : ${params.image_file}
          ref cat      : ${params.reference_catalogue}
+         cat file     : ${params.catalogue_file}
          output to    : ${params.output_dir}
          --
          run as       : ${workflow.commandLine}
@@ -41,7 +42,7 @@ process source_find {
   file('reference.fits') from file(params.reference_catalogue)
 
   output:
-  path("${name}_comp.fits")
+  path("${name}_comp.fits") into catalogue_ch
 
   script:
   """
@@ -49,5 +50,21 @@ process source_find {
   aegean --cores ${task.cpus} --background bkg.fits --noise rms.fits --noregroup\
          --table image.fits --priorized 1 --input reference.fits image.fits
   mv image_comp.fits ${name}_comp.fits
+  """
+}
+
+process join_catalogues {
+  input:
+  path(images) from catalogue_ch.collect()
+  file('catalogues.csv') from file(params.catalogue_file)
+  file('reference.fits') from file(params.reference_catalogue)
+
+  output:
+  path("joined_cat.vot") into wide_cat_ch
+
+  script:
+  """
+  echo ${task.process} on \${HOSTNAME}
+  python join_catalogues.py --epochs catalogues.csv --refcat reference.fits --out joined_cat.vot
   """
 }
