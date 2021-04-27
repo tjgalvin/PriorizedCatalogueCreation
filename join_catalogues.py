@@ -90,8 +90,8 @@ def join_catalogues(reference, epochs, prefix=None, suffix=None):
     # now put the data into the new big table
     for i,(f,p,s) in enumerate(zip(epochs,prefix,suffix)):
         print("Joining epoch {0} catalogue {1}".format(i,f))
-        new_cols = Table.read(f)['uuid', 'peak_flux', 'err_peak_flux', 'local_rms', 'background',
-                                 'image', 'epoch']
+        new_cols = Table.read(f)['uuid', 'peak_flux', 'err_peak_flux', 
+                                 'local_rms', 'background']
         new_cols.sort(keys='uuid')
         # compute the order/presence
         ordering = np.argwhere(np.in1d(ref['uuid'], new_cols['uuid'], assume_unique=True))[:,0]
@@ -99,8 +99,6 @@ def join_catalogues(reference, epochs, prefix=None, suffix=None):
         ref['{0}err_peak_flux{1}'.format(p,s)][ordering] = new_cols['err_peak_flux']
         ref['{0}local_rms{1}'.format(p,s)][ordering] = new_cols['local_rms']
         ref['{0}background{1}'.format(p,s)][ordering] = new_cols['background']
-        ref['{0}image{1}'.format(p,s)][ordering] = new_cols['image']
-        ref['{0}epoch{1}'.format(p,s)][ordering] = new_cols['epoch']
 
     return ref
 
