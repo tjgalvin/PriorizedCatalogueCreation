@@ -65,6 +65,6 @@ process join_catalogues {
   script:
   """
   echo ${task.process} on \${HOSTNAME}
-  python join_catalogues.py --epochs catalogues.csv --refcat reference.fits --out joined_cat.vot
+  python ${params.codeDir}/join_catalogues.py --epochs catalogues.csv --refcat reference.fits --out joined_cat.vot
   """
 }
