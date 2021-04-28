@@ -1,7 +1,7 @@
 #! /usr/bin/env nextflow
 
 version = '0.9'
-date = '2021-03-24'
+date = '2021-04-27'
 /* CONFIGURATION STAGE */
 
 // output directory
@@ -13,6 +13,7 @@ log.info """\
          GLEAM-X Catalogue Creation
          ==========================
          version      : ${version} - ${date}
+         night        : ${params.night}
          images from  : ${params.image_file}
          ref cat      : ${params.reference_catalogue}
          cat file     : ${params.catalogue_file}
@@ -60,11 +61,11 @@ process join_catalogues {
   file('reference.fits') from file(params.reference_catalogue)
 
   output:
-  path("joined_cat.vot") into wide_cat_ch
+  path("${params.night}_joined_cat.vot") into wide_cat_ch
 
   script:
   """
   echo ${task.process} on \${HOSTNAME}
-  python ${params.codeDir}/join_catalogues.py --epochs catalogues.csv --refcat reference.fits --out joined_cat.vot
+  python ${params.codeDir}/join_catalogues.py --epochs catalogues.csv --refcat reference.fits --out ${params.night}_joined_cat.vot
   """
 }
