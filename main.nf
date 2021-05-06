@@ -28,7 +28,7 @@ log.info """\
 // Read the image names from a text file
 image_ch = Channel
   .fromPath(params.image_file)
-  .splitCsv(header:true)
+  .splitCsv(header:true, strip:true)
   .map{row -> tuple(file("${params.image_dir}/${row.image}"),
                     file("${params.image_dir}/${row.bkg}"), 
                     file("${params.image_dir}/${row.rms}"), 
