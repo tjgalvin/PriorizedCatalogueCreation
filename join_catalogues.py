@@ -81,24 +81,30 @@ def join_catalogues(reference, epochs, prefix=None, suffix=None):
     new_cols =[]
     data = np.zeros(len(ref), dtype=np.float32)
 
+    keep_cols = ['peak_flux','err_peak_flux','local_rms','background',
+                 'int_flux', 'err_int_flux', 'a','b','pa','psf_a','psf_b','psf_pa',
+                 'residual_mean','residual_std']
     for i,(p,s) in enumerate(zip(prefix,suffix)):
-        for colname in ['{0}peak_flux{1}','{0}err_peak_flux{1}', '{0}local_rms{1}', '{0}background{1}']:
+        for colname in ['{0}'+a+'{1}' for a in keep_cols]:
             new_cols.append(Column(data=data.copy(), name=colname.format(p,s)))
     print("ref table is {0} rows".format(len(ref)))
     ref.add_columns(new_cols)
+    del new_cols
 
+    read_cols = keep_cols[:]
+    read_cols.append('uuid')
     # now put the data into the new big table
     for i,(f,p,s) in enumerate(zip(epochs,prefix,suffix)):
         print("Joining epoch {0} catalogue {1}".format(i,f))
-        new_cols = Table.read(f)['uuid', 'peak_flux', 'err_peak_flux', 
-                                 'local_rms', 'background']
+        new_cols = Table.read(f)[read_cols]
         new_cols.sort(keys='uuid')
         # compute the order/presence
         ordering = np.argwhere(np.in1d(ref['uuid'], new_cols['uuid'], assume_unique=True))[:,0]
-        ref['{0}peak_flux{1}'.format(p,s)][ordering] = new_cols['peak_flux']
-        ref['{0}err_peak_flux{1}'.format(p,s)][ordering] = new_cols['err_peak_flux']
-        ref['{0}local_rms{1}'.format(p,s)][ordering] = new_cols['local_rms']
-        ref['{0}background{1}'.format(p,s)][ordering] = new_cols['background']
+        for a in keep_cols :
+            ref['{0}{1}{2}'.format(p,a,s)][ordering] = new_cols[a]
+#        ref['{0}err_peak_flux{1}'.format(p,s)][ordering] = new_cols['err_peak_flux']
+#        ref['{0}local_rms{1}'.format(p,s)][ordering] = new_cols['local_rms']
+#        ref['{0}background{1}'.format(p,s)][ordering] = new_cols['background']
 
     return ref
 
