@@ -37,7 +37,7 @@ def get_epoch_catalogues(epochs_file):
     return files, prefix, suffix
 
 
-def join_catalogues(reference, epochs, prefix=None, suffix=None):
+def join_catalogues(reference, epochs, prefix=None, suffix=None, all_cols=False):
     """
     Take a reference cataloge, strip all but the uuid/ra/dec columns and then
     join the flux/err_flux data from each of the epoch catalogues
@@ -58,6 +58,9 @@ def join_catalogues(reference, epochs, prefix=None, suffix=None):
     suffix : list
         Column name suffix for each epoch
 
+    all_cols : bool
+        If true then all columns are retained from all catalogues
+
     returns
     -------
     table : `astropy.table.Table`
@@ -66,7 +69,15 @@ def join_catalogues(reference, epochs, prefix=None, suffix=None):
     # Read the reference catalogue and retain only the uuid and ra/dec columns
     # rename the ra/dec columns
     print("Using reference catalogue {0}".format(reference))
-    ref = Table.read(reference)['uuid', 'ra','dec']
+    if all_cols:
+        ref = Table.read(reference)
+        keep_cols = ref.colnames
+    else:
+        ref = Table.read(reference)['uuid', 'ra','dec']
+        keep_cols = ['peak_flux','err_peak_flux','local_rms','background',
+                     'int_flux', 'err_int_flux', 'a','b','pa','psf_a','psf_b','psf_pa',
+                     'residual_mean','residual_std']
+    dtypes = Table.read(reference).dtype
     ref.rename_column('ra', 'ref_ra')
     ref.rename_column('dec', 'ref_dec')
     ref.sort(keys='uuid')
@@ -79,20 +90,19 @@ def join_catalogues(reference, epochs, prefix=None, suffix=None):
 
     # make the empty columns
     new_cols =[]
-    data = np.zeros(len(ref), dtype=np.float32)
+    #data = np.zeros(len(ref), dtype=np.float32)
 
-    keep_cols = ['peak_flux','err_peak_flux','local_rms','background',
-                 'int_flux', 'err_int_flux', 'a','b','pa','psf_a','psf_b','psf_pa',
-                 'residual_mean','residual_std']
     for i,(p,s) in enumerate(zip(prefix,suffix)):
-        for colname in ['{0}'+a+'{1}' for a in keep_cols]:
-            new_cols.append(Column(data=data.copy(), name=colname.format(p,s)))
+        for a in keep_cols:
+            colname = '{0}'+a+'{1}'
+            new_cols.append(Column(length=len(ref), name=colname.format(p,s), dtype=dtypes[a]))
     print("ref table is {0} rows".format(len(ref)))
     ref.add_columns(new_cols)
     del new_cols
 
     read_cols = keep_cols[:]
-    read_cols.append('uuid')
+    if 'uuid' not in read_cols:
+        read_cols.append('uuid')
     # now put the data into the new big table
     for i,(f,p,s) in enumerate(zip(epochs,prefix,suffix)):
         print("Joining epoch {0} catalogue {1}".format(i,f))
@@ -102,9 +112,6 @@ def join_catalogues(reference, epochs, prefix=None, suffix=None):
         ordering = np.argwhere(np.in1d(ref['uuid'], new_cols['uuid'], assume_unique=True))[:,0]
         for a in keep_cols :
             ref['{0}{1}{2}'.format(p,a,s)][ordering] = new_cols[a]
-#        ref['{0}err_peak_flux{1}'.format(p,s)][ordering] = new_cols['err_peak_flux']
-#        ref['{0}local_rms{1}'.format(p,s)][ordering] = new_cols['local_rms']
-#        ref['{0}background{1}'.format(p,s)][ordering] = new_cols['background']
 
     return ref
 
@@ -137,6 +144,8 @@ if __name__ == "__main__":
                         help="A file containing 'filename,prefix,suffix' for each catalogue.")
     group1.add_argument("--out", dest='outfile', type=str, default='flux_table.vot',
                         help="The output table name. Default = flux_table.vot")
+    group1.add_argument("--all", dest='all', action='store_true', default=False,
+                        help="Retain all columns from all catalogues. [Default false]")
     results = parser.parse_args()
 
     if None in (results.ref, results.epochs, results.outfile):
@@ -144,5 +153,5 @@ if __name__ == "__main__":
         sys.exit()
 
     files, prefix, suffix = get_epoch_catalogues(results.epochs)
-    table = join_catalogues(results.ref, files, prefix, suffix)
+    table = join_catalogues(results.ref, files, prefix, suffix, all_cols=results.all)
     write_table(table, results.outfile)
