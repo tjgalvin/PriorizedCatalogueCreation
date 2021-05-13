@@ -1,7 +1,7 @@
 #! /usr/bin/env nextflow
 
 version = '0.9'
-date = '2021-05-03'
+date = '2021-05-11'
 /* CONFIGURATION STAGE */
 
 // output directory
@@ -50,7 +50,7 @@ process source_find {
   echo ${task.process} on \${HOSTNAME}
   aegean --cores ${task.cpus} --background bkg.fits --noise rms.fits --psf psf.fits\
   	 --noregroup --table image.fits --priorized 1 --input reference.fits\
-         image.fits
+         --progress image.fits
   mv image_comp.fits ${name}_comp.fits
   """
 }
@@ -67,6 +67,6 @@ process join_catalogues {
   script:
   """
   echo ${task.process} on \${HOSTNAME}
-  python ${params.codeDir}/join_catalogues.py --epochs catalogues.csv --refcat reference.fits --out ${params.night}_joined_cat.vot
+  python ${params.codeDir}/join_catalogues.py --epochs catalogues.csv --refcat reference.fits --out ${params.night}_joined_cat.vot --all
   """
 }
