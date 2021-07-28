@@ -1,7 +1,7 @@
 #! /usr/bin/env nextflow
 
-version = '0.9'
-date = '2021-05-11'
+version = '0.10'
+date = '2021-07-28'
 /* CONFIGURATION STAGE */
 
 // output directory
@@ -18,6 +18,7 @@ log.info """\
          ref cat      : ${params.reference_catalogue}
          cat file     : ${params.catalogue_file}
          output to    : ${params.output_dir}
+         GGSM path    : ${params.ggsm}    
          --
          run as       : ${workflow.commandLine}
          config files : ${workflow.configFiles}
@@ -51,7 +52,11 @@ process source_find {
   aegean --cores ${task.cpus} --background bkg.fits --noise rms.fits --psf psf.fits\
   	 --noregroup --table image.fits --priorized 1 --input reference.fits\
          --progress image.fits
+  python ${params.codeDir}/mosaic_global_rescale.py image_comp.fits image.fits ${params.ggsm} --plot --verbose --apply 
+  
   mv image_comp.fits ${name}_comp.fits
+  mv image_rescaled.fits ${name}_rescaled.fits
+  mv image_comp_rescaled.fits ${name}_comp_rescaled.fits
   """
 }
 
@@ -68,5 +73,10 @@ process join_catalogues {
   """
   echo ${task.process} on \${HOSTNAME}
   python ${params.codeDir}/join_catalogues.py --epochs catalogues.csv --refcat reference.fits --out ${params.night}_joined_cat.vot --all
+  
+  cat catalogues.csv | sed -e 's|.fits|_rescaled.fits|' > catalogues_rescaled.csv
+  python ${params.codeDir}/join_catalogues.py --epochs catalogues_rescaled.csv --refcat reference.fits --out ${params.night}_joined_rescaled_cat.vot --all
+  
+  
   """
 }
