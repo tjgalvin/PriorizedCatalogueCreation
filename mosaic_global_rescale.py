@@ -170,6 +170,7 @@ def derive_apply_scale(
     )
     cross_tab["ratio"] = cross_tab["int_flux"] / cross_tab["model_flux"]
 
+    pltkwargs = None
     if plot:
         plotpath = catalogue.replace(".fits", "_rescaled_hist.png")
         pltkwargs = {"xlabel": f"GLEAM-X$_{{{freq.value:.0f} \mathrm{{MHz}}}}$/GLEAM"}
