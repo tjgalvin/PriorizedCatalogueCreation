@@ -117,7 +117,17 @@ def write_rescale_outputs(image: str, catalogue: str, mean_ratio: float) -> None
         img_fits[0].data /= mean_ratio
         img_fits.writeto(img_out, overwrite=True)
 
-    cols = ["int_flux", "peak_flux"]
+    cols = [
+        "int_flux",
+        "peak_flux",
+        "local_rms",
+        "err_peak_flux",
+        "local_rms",
+        "background",
+        "residual_mean",
+        "residual_std",
+    ]
+
     logger.debug(f"Creating {cata_out}")
     logger.debug(f"Opening a fresh copy of {catalogue}")
     cata_rescale = Table.read(catalogue)
