@@ -120,8 +120,8 @@ def write_rescale_outputs(image: str, catalogue: str, mean_ratio: float) -> None
     cols = [
         "int_flux",
         "peak_flux",
-        "local_rms",
         "err_peak_flux",
+        "err_int_flux",
         "local_rms",
         "background",
         "residual_mean",
