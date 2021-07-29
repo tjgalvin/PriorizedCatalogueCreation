@@ -45,6 +45,8 @@ process source_find {
 
   output:
   path("${name}_comp.fits") into catalogue_ch
+  path("${name}_comp_rescaled.fits") into rescaled_comps_ch
+  path("${name}_rescaled.fits") into rescaled_imgs_ch
 
   script:
   """
@@ -63,6 +65,8 @@ process source_find {
 process join_catalogues {
   input:
   path(images) from catalogue_ch.collect()
+  path(rescaledcomps) from rescaled_comps_ch.collect()
+  path(rescaledimgs) from rescaled_imgs_ch.collect()
   file('catalogues.csv') from file(params.catalogue_file)
   file('reference.fits') from file(params.reference_catalogue)
 
