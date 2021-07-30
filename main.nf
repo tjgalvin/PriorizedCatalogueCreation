@@ -72,7 +72,7 @@ process join_catalogues {
 
   output:
   path("${params.night}_joined_cat.vot") into wide_cat_ch
-  path("${params.night}_joined_rescaled_cat.vot") into wide_cat_ch
+  path("${params.night}_joined_rescaled_cat.vot") into rescaled_cat_ch
 
   script:
   """
