@@ -1,4 +1,5 @@
 import logging
+import os
 
 import numpy as np
 import astropy.units as u
@@ -106,16 +107,29 @@ def calculate_mean_ratio(
     return scale2
 
 
-def write_rescale_outputs(image: str, catalogue: str, mean_ratio: float) -> None:
+def write_rescale_outputs(
+    image: str, catalogue: str, mean_ratio: float, rmsbkg: bool = False
+) -> None:
     logger.info("Creating rescaled data products")
 
-    img_out = image.replace(".fits", "_rescaled.fits")
-    cata_out = catalogue.replace(".fits", "_rescaled.fits")
+    image_fits_files = [image]
+    if rmsbkg is True:
+        logger.debug("bkgrms is true. Will apply to BANE products. ")
+        image_fits_files.extend(
+            [image.replace(".fits", f"_{suf}.fits") for suf in ["bkg", "rms"]]
+        )
 
-    with fits.open(image) as img_fits:
-        logger.debug(f"Creating {img_out}")
-        img_fits[0].data /= mean_ratio
-        img_fits.writeto(img_out, overwrite=True)
+    if not all(map(os.path.exists, image_fits_files)):
+        raise FileNotFoundError("Missing image fits files -- likely rms/bkg related. ")
+
+    for img in image_fits_files:
+        logger.debug(f"Rescaling {img}")
+        img_out = img.replace(".fits", "_rescaled.fits")
+
+        with fits.open(img) as img_fits:
+            logger.debug(f"Creating {img_out}")
+            img_fits[0].data /= mean_ratio
+            img_fits.writeto(img_out, overwrite=True)
 
     cols = [
         "int_flux",
@@ -128,6 +142,7 @@ def write_rescale_outputs(image: str, catalogue: str, mean_ratio: float) -> None
         "residual_std",
     ]
 
+    cata_out = catalogue.replace(".fits", "_rescaled.fits")
     logger.debug(f"Creating {cata_out}")
     logger.debug(f"Opening a fresh copy of {catalogue}")
     cata_rescale = Table.read(catalogue)
@@ -148,6 +163,7 @@ def derive_apply_scale(
     apply: bool = False,
     sigma_thres: float = 25,
     plot: bool = False,
+    rmsbkg: bool = False,
     **kwargs,
 ) -> None:
     logger.debug(f"Opening {image} header")
@@ -184,7 +200,7 @@ def derive_apply_scale(
     if not apply:
         logger.info("Not applying the ratio to the data products")
         return
-    write_rescale_outputs(image, catalogue, mean_ratio)
+    write_rescale_outputs(image, catalogue, mean_ratio, rmsbkg=rmsbkg)
 
 
 if __name__ == "__main__":
@@ -231,6 +247,12 @@ if __name__ == "__main__":
         default=25,
         help="Ignore sources when computing the mean ratio offset below this sigma threshold",
     )
+    parser.add_argument(
+        "--rmsbkg",
+        default=False,
+        action="store_true",
+        help="Search for and apply the rescaling to the BANE produced RMS and BKG images. ",
+    )
 
     args = parser.parse_args()
 
@@ -244,4 +266,6 @@ if __name__ == "__main__":
         apply=args.apply,
         sigma_thres=args.sigma_thres,
         plot=args.plot,
+        rmsbkg=args.rmsbkg,
     )
+
