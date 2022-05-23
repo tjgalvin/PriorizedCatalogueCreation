@@ -51,10 +51,10 @@ process source_find {
   script:
   """
   echo ${task.process} on \${HOSTNAME}
-  aegean --cores 1 --background bkg.fits --noise rms.fits --psf psf.fits\
-  	 --noregroup --table image.fits --priorized 1 --input reference.fits\
+  aegean --regroup-eps 5 --cores 1 --background bkg.fits --noise rms.fits --psf psf.fits\
+  	 --table image.fits --priorized 1 --input reference.fits\
          --progress image.fits
-  python ${params.codeDir}/mosaic_global_rescale.py image_comp.fits image.fits ${params.ggsm} --plot --verbose --apply 
+  python ${params.codeDir}/mosaic_global_rescale.py image_comp.fits image.fits ${params.ggsm} --plot --verbose --apply --sigma-thres 75 
   
   mv image_comp.fits ${name}_comp.fits
   mv image_rescaled.fits ${name}_rescaled.fits
